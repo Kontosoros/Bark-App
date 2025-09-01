@@ -55,7 +55,6 @@ export class RecorderAreaComponent {
       this.audioStream = stream;
       this.startRecording();
     } catch (error) {
-      console.error('Microphone permission denied:', error);
       this.showMicrophonePermissionDialog();
     }
   }
@@ -78,7 +77,6 @@ export class RecorderAreaComponent {
 
   startRecording() {
     this.isRecording = true;
-    console.log('Recording started - Microphone permission granted');
 
     // Connect audio stream to waveform component
     if (this.audioStream && this.waveformComponent) {
@@ -95,7 +93,6 @@ export class RecorderAreaComponent {
 
   stopRecording() {
     this.isRecording = false;
-    console.log('Recording stopped');
 
     // Stop all audio tracks
     if (this.audioStream) {
