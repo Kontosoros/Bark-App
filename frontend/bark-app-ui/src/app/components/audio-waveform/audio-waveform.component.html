@@ -1,0 +1,28 @@
+<div class="waveform-container">
+    <div class="threshold-controls">
+        <label for="threshold-slider">Threshold: {{ threshold }} dB</label>
+        <input id="threshold-slider" type="range" min="-60" max="0" step="1" [value]="threshold" (input)="onThresholdChange($event)" class="threshold-slider" />
+        <div class="threshold-status" [class.triggered]="isThresholdExceeded">
+            {{ isThresholdExceeded ? 'LOUD NOISE DETECTED!' : 'Listening...' }}
+        </div>
+    </div>
+
+    <canvas #waveformCanvas class="waveform-canvas"></canvas>
+
+    <div class="audio-stats">
+        <div class="stat-item">
+            <span class="stat-label">Current:</span>
+            <span class="stat-value" [class.threshold-exceeded]="isThresholdExceeded">
+                {{ currentAmplitude }} dB
+            </span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Peak:</span>
+            <span class="stat-value">{{ peakAmplitude }} dB</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Frequency:</span>
+            <span class="stat-value">{{ currentFrequency }} Hz</span>
+        </div>
+    </div>
+</div>
