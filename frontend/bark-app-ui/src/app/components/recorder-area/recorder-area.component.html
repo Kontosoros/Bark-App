@@ -1,3 +1,11 @@
 <div class="recorder-area">
-    <h1>Recorder Area</h1>
+    <h1>AI Bark Detection</h1>
+    <div class="microphone-container">
+        <button mat-icon-button class="microphone-button" (click)="toggleRecording()">
+            <mat-icon [class.recording]="isRecording" class="microphone-icon">
+                {{ isRecording ? 'stop' : 'hearing' }}
+            </mat-icon>
+        </button>
+        <p class="status-text">{{ isRecording ? 'Listening for barks...' : 'Click to start listening' }}</p>
+    </div>
 </div>
