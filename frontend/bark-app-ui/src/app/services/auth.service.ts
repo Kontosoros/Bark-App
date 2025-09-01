@@ -108,7 +108,7 @@ export class AuthService {
     localStorage.setItem(ACCESS_TOKEN, token);
     localStorage.setItem(REFRESH_TOKEN, refreshToken);
     this.isAuthorized = true;
-    this.router.navigate(['/calendar']); // Navigate to protected route
+    this.router.navigate(['/main']); // Navigate to protected route
   }
 
   // Logout logic: clear local storage and redirect to login
