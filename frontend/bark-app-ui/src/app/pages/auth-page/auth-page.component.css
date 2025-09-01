@@ -1,0 +1,137 @@
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: rgba(172, 172, 172, 0.138);
+}
+
+.auth-card {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem;
+    border-radius: 8px;
+    max-width: 900px;
+    width: 100%;
+    border: 0.2px solid rgba(254, 254, 254, 0.97);
+    max-width: 600px;
+    background-color: rgba(46, 46, 46, 0.593);
+    animation: borderColorChange 3s linear infinite;
+}
+
+@keyframes borderColorChange {
+    0% {
+        border-color: rgba(254, 254, 254, 0.97);
+    }
+    33% {
+        border-color: #237de3;
+    }
+    66% {
+        border-color: #ff5733;
+    }
+    100% {
+        border-color: rgba(254, 254, 254, 0.97);
+    }
+}
+
+.auth-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('/assets/cal.png') no-repeat center center;
+    background-size: 500px 400px;
+    filter: blur(0.5px);
+    /* Apply blur effect */
+    z-index: -1;
+    /* Ensure the pseudo-element is behind the content */
+}
+
+.forms-container {
+    display: flex;
+    width: 70%;
+    justify-content: space-between;
+}
+
+.form {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 0.4rem;
+}
+
+.register-link {
+    text-align: center;
+    margin-top: 1rem;
+    color: white;
+}
+
+.register-link a {
+    color: #237de3;
+    text-decoration: none;
+}
+
+.register-link a:hover {
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #fff;
+    /* Adjust color as needed */
+}
+
+input {
+    width: 100%;
+    padding: 0.5rem;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    background-color: rgba(255, 255, 255, 0.8);
+    color: #333;
+    /* Adjust text color as needed */
+    box-sizing: border-box;
+}
+
+input:focus {
+    border-color: #ffffff;
+    outline: none;
+    box-shadow: 0 0 5px rgb(255, 255, 255);
+}
+
+input:hover {
+    box-shadow: 0 0 5px rgb(255, 255, 255);
+}
+
+button {
+    margin-top: 1rem;
+    padding: 0.8rem 1.5rem;
+    border-radius: 25px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+.error {
+    color: red;
+    margin-top: 0.5rem;
+}

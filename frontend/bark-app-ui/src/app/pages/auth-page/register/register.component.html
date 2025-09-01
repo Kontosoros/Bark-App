@@ -1,0 +1,45 @@
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="forms-container">
+
+            <form [formGroup]="registerForm" class="form register-form" (ngSubmit)="onRegister()">
+                <h2>Register</h2>
+
+                <!-- Name Field -->
+                <div class="form-field">
+                    <label for="name">Name</label>
+                    <input id="name" formControlName="name" type="text" placeholder="Enter your name" required />
+                    <div class="error" *ngIf="registerForm.get('name')?.hasError('required') && registerForm.get('name')?.touched">Name is required</div>
+                </div>
+
+                <!-- Email Field -->
+                <div class="form-field">
+                    <label for="email">Email</label>
+                    <input id="email" formControlName="email" type="email" placeholder="Enter your email" required />
+                    <div class="error" *ngIf="registerForm.get('email')?.hasError('required') && registerForm.get('email')?.touched">Email is required</div>
+                    <div class="error" *ngIf="registerForm.get('email')?.hasError('email') && registerForm.get('email')?.touched">Invalid email format</div>
+                </div>
+
+                <!-- Password Field -->
+                <div class="form-field">
+                    <label for="password">Password</label>
+                    <input id="password" formControlName="password" type="password" placeholder="Enter your password" required />
+                    <div class="error" *ngIf="registerForm.get('password')?.hasError('required') && registerForm.get('password')?.touched">Password is required</div>
+                </div>
+
+                <!-- Confirm Password Field -->
+                <div class="form-field">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input id="confirmPassword" formControlName="confirmPassword" type="password" placeholder="Confirm your password" required />
+                    <div class="error" *ngIf="registerForm.get('confirmPassword')?.hasError('required') && registerForm.get('confirmPassword')?.touched">Confirm Password is required</div>
+                </div>
+                <div class='error' *ngIf="registerForm.hasError('passwordMismatch') && registerForm.get('confirmPassword')?.touched">Password mismatch</div>
+                <button type="submit" [disabled]="registerForm.invalid">
+                    Register
+                </button>
+            </form>
+        </div>
+        <div class="register-link">Already have an account?
+            <a routerLink="/" (click)="onClickLogin()">Login</a></div>
+    </div>
+</div>
