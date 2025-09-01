@@ -1,11 +1,11 @@
 import { Component } from '@angular/core';
-
+import { HeaderComponent } from '../../components/header/header.component';
+import { LogsDashboardComponent } from '../../components/logs-dashboard/logs-dashboard.component';
+import { RecorderAreaComponent } from '../../components/recorder-area/recorder-area.component';
 @Component({
   selector: 'app-main-app',
-  imports: [],
+  imports: [HeaderComponent, LogsDashboardComponent, RecorderAreaComponent],
   templateUrl: './main-app.component.html',
-  styleUrl: './main-app.component.scss'
+  styleUrl: './main-app.component.scss',
 })
-export class MainAppComponent {
-
-}
+export class MainAppComponent {}
