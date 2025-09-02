@@ -384,4 +384,14 @@ export class AudioProcessingService {
       view.setUint8(offset + i, string.charCodeAt(i));
     }
   }
+
+  /**
+   * Send processed audio data to Django backend for AI inference
+   * Matches the Python backend API expectations
+   */
+
+  /**
+   * Alternative: Send raw audio data for backend processing (like your Python code)
+   * This lets the backend handle all feature extraction
+   */
 }

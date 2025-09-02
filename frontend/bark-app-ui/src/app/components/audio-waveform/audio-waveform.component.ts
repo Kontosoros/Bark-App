@@ -23,8 +23,7 @@ export class AudioWaveformComponent implements OnInit, OnDestroy {
     amplitude: number;
     frequency: number;
     timestamp: Date;
-    audioData: Float32Array;
-    sampleRate: number;
+    wavBlob: Blob;
   }>();
 
   @ViewChild('waveformCanvas', { static: true })
@@ -38,14 +37,10 @@ export class AudioWaveformComponent implements OnInit, OnDestroy {
   private mediaRecorder: MediaRecorder | null = null;
   private audioChunks: Blob[] = [];
   private isCapturing = false;
-  private captureDuration = 3000; // Capture 3 seconds of audio
-  private captureStartTime = 0;
 
-  // Threshold and audio tracking
+  // Threshold detection
   threshold = -30; // Default threshold in dB
-  currentFrequency = 0;
   currentAmplitude = 0;
-  peakAmplitude = -60;
   isThresholdExceeded = false;
   private lastThresholdTime = 0;
   private thresholdCooldown = 1000; // 1 second cooldown between alerts
@@ -93,39 +88,146 @@ export class AudioWaveformComponent implements OnInit, OnDestroy {
       this.source = this.audioContext.createMediaStreamSource(stream);
       this.source.connect(this.analyser);
 
-      // Create script processor for audio capture
-      this.mediaRecorder = new MediaRecorder(stream);
+      // Setup MediaRecorder with supported MIME type
+      const supportedTypes = [
+        'audio/webm;codecs=opus',
+        'audio/webm',
+        'audio/mp4',
+        'audio/ogg;codecs=opus',
+      ];
+
+      let mimeType = 'audio/webm;codecs=opus'; // Default fallback
+
+      // Find supported MIME type
+      for (const type of supportedTypes) {
+        if (MediaRecorder.isTypeSupported(type)) {
+          mimeType = type;
+          break;
+        }
+      }
+
+      console.log('Using MediaRecorder MIME type:', mimeType);
+
+      this.mediaRecorder = new MediaRecorder(stream, {
+        mimeType: mimeType,
+      });
+
       this.mediaRecorder.ondataavailable = (event) => {
         if (event.data && event.data.size > 0) {
           this.audioChunks.push(event.data);
         }
       };
+
       this.mediaRecorder.onstop = () => {
         if (this.audioChunks.length > 0) {
-          const audioBlob = new Blob(this.audioChunks, { type: 'audio/wav' });
-          this.audioChunks = []; // Clear chunks after stopping
+          // Convert to WAV format
+          this.convertToWAV(this.audioChunks, mimeType);
 
-          // Convert Blob to ArrayBuffer for processing
-          const reader = new FileReader();
-          reader.readAsArrayBuffer(audioBlob);
-          reader.onloadend = () => {
-            if (reader.result) {
-              const audioData = new Float32Array(reader.result as ArrayBuffer);
-              this.thresholdExceeded.emit({
-                amplitude: this.currentAmplitude,
-                frequency: this.currentFrequency,
-                timestamp: new Date(),
-                audioData: audioData,
-                sampleRate: this.audioContext?.sampleRate || 44100,
-              });
-            }
-          };
+          // Clear chunks after processing
+          this.audioChunks = [];
         }
       };
 
-      console.log('Audio stream connected to waveform with capture capability');
+      console.log('Audio stream connected with audio capture capability');
     } catch (error) {
       console.error('Error connecting audio stream:', error);
+    }
+  }
+
+  /**
+   * Convert captured audio chunks to WAV format
+   */
+  private async convertToWAV(audioChunks: Blob[], originalMimeType: string) {
+    try {
+      // Create a blob from the audio chunks
+      const audioBlob = new Blob(audioChunks, { type: originalMimeType });
+
+      // Convert to WAV using Web Audio API
+      const arrayBuffer = await audioBlob.arrayBuffer();
+      const audioContext = new AudioContext();
+      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+      // Convert to WAV format
+      const wavBlob = this.audioBufferToWAV(audioBuffer);
+
+      console.log('🎵 WAV file created:', wavBlob.size, 'bytes');
+
+      // Emit the WAV blob for backend processing
+      this.thresholdExceeded.emit({
+        amplitude: this.currentAmplitude,
+        frequency: 0, // Simplified - not calculating frequency
+        timestamp: new Date(),
+        wavBlob: wavBlob,
+      });
+
+      // Clean up
+      audioContext.close();
+    } catch (error) {
+      console.error('Error converting to WAV:', error);
+
+      // Fallback: send original audio format
+      const fallbackBlob = new Blob(audioChunks, { type: originalMimeType });
+      console.log('⚠️ Using fallback audio format:', originalMimeType);
+
+      this.thresholdExceeded.emit({
+        amplitude: this.currentAmplitude,
+        frequency: 0,
+        timestamp: new Date(),
+        wavBlob: fallbackBlob, // Note: this is not actually WAV, but the backend can handle it
+      });
+    }
+  }
+
+  /**
+   * Convert AudioBuffer to WAV format
+   */
+  private audioBufferToWAV(audioBuffer: AudioBuffer): Blob {
+    const numChannels = audioBuffer.numberOfChannels;
+    const sampleRate = audioBuffer.sampleRate;
+    const length = audioBuffer.length;
+
+    // WAV header (44 bytes)
+    const buffer = new ArrayBuffer(44 + length * numChannels * 2);
+    const view = new DataView(buffer);
+
+    // Write WAV header
+    this.writeString(view, 0, 'RIFF');
+    view.setUint32(4, 36 + length * numChannels * 2, true);
+    this.writeString(view, 8, 'WAVE');
+    this.writeString(view, 12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, numChannels, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * numChannels * 2, true);
+    view.setUint16(32, numChannels * 2, true);
+    view.setUint16(34, 16, true);
+    this.writeString(view, 36, 'data');
+    view.setUint32(40, length * numChannels * 2, true);
+
+    // Write audio data
+    let offset = 44;
+    for (let i = 0; i < length; i++) {
+      for (let channel = 0; channel < numChannels; channel++) {
+        const sample = Math.max(
+          -1,
+          Math.min(1, audioBuffer.getChannelData(channel)[i])
+        );
+        view.setInt16(
+          offset,
+          sample < 0 ? sample * 0x8000 : sample * 0x7fff,
+          true
+        );
+        offset += 2;
+      }
+    }
+
+    return new Blob([buffer], { type: 'audio/wav' });
+  }
+
+  private writeString(view: DataView, offset: number, string: string) {
+    for (let i = 0; i < string.length; i++) {
+      view.setUint8(offset + i, string.charCodeAt(i));
     }
   }
 
@@ -133,11 +235,10 @@ export class AudioWaveformComponent implements OnInit, OnDestroy {
     if (this.isCapturing) return;
 
     this.isCapturing = true;
-    this.captureStartTime = Date.now();
     this.audioChunks = []; // Clear previous chunks
     this.mediaRecorder?.start();
 
-    console.log('🎙️ Audio capture started for AI processing');
+    console.log('🎙️ Audio capture started for WAV file');
   }
 
   private stopAudioCapture() {
@@ -146,11 +247,7 @@ export class AudioWaveformComponent implements OnInit, OnDestroy {
     this.isCapturing = false;
     this.mediaRecorder?.stop();
 
-    console.log(
-      `🎙️ Audio capture completed: ${this.audioChunks.length} chunks captured`
-    );
-
-    return null; // MediaRecorder handles the actual audio data
+    console.log('🎙️ Audio capture stopped, processing WAV file');
   }
 
   private startVisualization() {
@@ -194,26 +291,20 @@ export class AudioWaveformComponent implements OnInit, OnDestroy {
       ctx.stroke();
       ctx.setLineDash([]);
 
-      // Draw waveform bars
+      // Draw simple waveform bars
       const barWidth = width / this.dataArray.length;
       let x = 0;
 
       for (let i = 0; i < this.dataArray.length; i++) {
         const barHeight = (this.dataArray[i] / 255) * height;
-        const hue = (i / this.dataArray.length) * 360;
+        const color = this.isThresholdExceeded ? '#ef4444' : '#667eea';
 
-        // Change color when threshold is exceeded
-        if (this.isThresholdExceeded) {
-          ctx.fillStyle = '#ef4444';
-        } else {
-          ctx.fillStyle = `hsl(${hue}, 70%, 60%)`;
-        }
-
+        ctx.fillStyle = color;
         ctx.fillRect(x, height - barHeight, barWidth, barHeight);
         x += barWidth;
       }
 
-      // Calculate and display frequency and amplitude
+      // Update audio info and check threshold
       this.updateAudioInfo();
     };
 
@@ -223,22 +314,6 @@ export class AudioWaveformComponent implements OnInit, OnDestroy {
   private updateAudioInfo() {
     if (!this.dataArray) return;
 
-    // Calculate dominant frequency
-    let maxIndex = 0;
-    let maxValue = 0;
-
-    for (let i = 0; i < this.dataArray.length; i++) {
-      if (this.dataArray[i] > maxValue) {
-        maxValue = this.dataArray[i];
-        maxIndex = i;
-      }
-    }
-
-    // Convert index to frequency (approximate)
-    this.currentFrequency = Math.round(
-      (maxIndex * (this.audioContext?.sampleRate || 44100)) / 512
-    );
-
     // Calculate average amplitude in dB
     let sum = 0;
     for (let i = 0; i < this.dataArray.length; i++) {
@@ -246,11 +321,6 @@ export class AudioWaveformComponent implements OnInit, OnDestroy {
     }
     const average = sum / this.dataArray.length;
     this.currentAmplitude = Math.round(20 * Math.log10(average / 255));
-
-    // Update peak amplitude
-    if (this.currentAmplitude > this.peakAmplitude) {
-      this.peakAmplitude = this.currentAmplitude;
-    }
 
     // Check threshold
     this.checkThreshold();
@@ -277,16 +347,9 @@ export class AudioWaveformComponent implements OnInit, OnDestroy {
       // Below threshold again
       this.isThresholdExceeded = false;
 
-      // Stop audio capture and emit event with captured data
+      // Stop audio capture and emit event with WAV file
       if (this.isCapturing) {
-        const capturedAudio = this.stopAudioCapture();
-
-        if (capturedAudio && this.audioContext) {
-          // The capturedAudio is now handled by the MediaRecorder onstop callback
-          // We can still emit an event if needed, but the data is already processed
-          // For now, we'll just log the completion.
-          console.log('Threshold exceeded, audio capture stopped.');
-        }
+        this.stopAudioCapture();
       }
     }
   }
