@@ -27,5 +27,37 @@
         </div>
     </div>
 
+    <!-- Audio Samples Status -->
+    <div class="audio-samples-status" *ngIf="capturedAudioSamples.length > 0">
+        <div class="status-card">
+            <h3>Audio Samples</h3>
+            <div class="status-grid">
+                <div class="status-item">
+                    <span class="label">Captured:</span>
+                    <span class="value">{{ capturedAudioSamples.length }}</span>
+                </div>
+                <div class="status-item">
+                    <span class="label">Total Duration:</span>
+                    <span class="value">{{ getTotalAudioDuration() | number:'1.1-1' }}s</span>
+                </div>
+                <div class="status-item" *ngIf="processedAudioSamples.length > 0">
+                    <span class="label">Processed:</span>
+                    <span class="value">{{ processedAudioSamples.length }}</span>
+                </div>
+            </div>
+            <div class="sample-actions">
+                <button mat-button color="primary" (click)="exportAudioSamples()">
+                    Export JSON
+                </button>
+                <button mat-button color="accent" (click)="exportProcessedAudioAsWAV()" *ngIf="processedAudioSamples.length > 0">
+                    Export WAV
+                </button>
+                <button mat-button color="warn" (click)="clearCapturedAudio()">
+                    Clear All
+                </button>
+            </div>
+        </div>
+    </div>
+
     <app-audio-waveform></app-audio-waveform>
 </div>

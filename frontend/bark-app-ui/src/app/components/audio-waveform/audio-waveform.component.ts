@@ -23,6 +23,8 @@ export class AudioWaveformComponent implements OnInit, OnDestroy {
     amplitude: number;
     frequency: number;
     timestamp: Date;
+    audioData: Float32Array;
+    sampleRate: number;
   }>();
 
   @ViewChild('waveformCanvas', { static: true })
@@ -33,6 +35,11 @@ export class AudioWaveformComponent implements OnInit, OnDestroy {
   private dataArray: Uint8Array | null = null;
   private animationId: number | null = null;
   private source: MediaStreamAudioSourceNode | null = null;
+  private mediaRecorder: MediaRecorder | null = null;
+  private audioChunks: Blob[] = [];
+  private isCapturing = false;
+  private captureDuration = 3000; // Capture 3 seconds of audio
+  private captureStartTime = 0;
 
   // Threshold and audio tracking
   threshold = -30; // Default threshold in dB
@@ -86,10 +93,64 @@ export class AudioWaveformComponent implements OnInit, OnDestroy {
       this.source = this.audioContext.createMediaStreamSource(stream);
       this.source.connect(this.analyser);
 
-      console.log('Audio stream connected to waveform');
+      // Create script processor for audio capture
+      this.mediaRecorder = new MediaRecorder(stream);
+      this.mediaRecorder.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) {
+          this.audioChunks.push(event.data);
+        }
+      };
+      this.mediaRecorder.onstop = () => {
+        if (this.audioChunks.length > 0) {
+          const audioBlob = new Blob(this.audioChunks, { type: 'audio/wav' });
+          this.audioChunks = []; // Clear chunks after stopping
+
+          // Convert Blob to ArrayBuffer for processing
+          const reader = new FileReader();
+          reader.readAsArrayBuffer(audioBlob);
+          reader.onloadend = () => {
+            if (reader.result) {
+              const audioData = new Float32Array(reader.result as ArrayBuffer);
+              this.thresholdExceeded.emit({
+                amplitude: this.currentAmplitude,
+                frequency: this.currentFrequency,
+                timestamp: new Date(),
+                audioData: audioData,
+                sampleRate: this.audioContext?.sampleRate || 44100,
+              });
+            }
+          };
+        }
+      };
+
+      console.log('Audio stream connected to waveform with capture capability');
     } catch (error) {
       console.error('Error connecting audio stream:', error);
     }
+  }
+
+  private startAudioCapture() {
+    if (this.isCapturing) return;
+
+    this.isCapturing = true;
+    this.captureStartTime = Date.now();
+    this.audioChunks = []; // Clear previous chunks
+    this.mediaRecorder?.start();
+
+    console.log('🎙️ Audio capture started for AI processing');
+  }
+
+  private stopAudioCapture() {
+    if (!this.isCapturing) return;
+
+    this.isCapturing = false;
+    this.mediaRecorder?.stop();
+
+    console.log(
+      `🎙️ Audio capture completed: ${this.audioChunks.length} chunks captured`
+    );
+
+    return null; // MediaRecorder handles the actual audio data
   }
 
   private startVisualization() {
@@ -202,13 +263,11 @@ export class AudioWaveformComponent implements OnInit, OnDestroy {
       // Threshold exceeded
       this.isThresholdExceeded = true;
 
+      // Start audio capture
+      this.startAudioCapture();
+
       // Emit event with cooldown
       if (now - this.lastThresholdTime > this.thresholdCooldown) {
-        this.thresholdExceeded.emit({
-          amplitude: this.currentAmplitude,
-          frequency: this.currentFrequency,
-          timestamp: new Date(),
-        });
         this.lastThresholdTime = now;
       }
     } else if (
@@ -217,12 +276,31 @@ export class AudioWaveformComponent implements OnInit, OnDestroy {
     ) {
       // Below threshold again
       this.isThresholdExceeded = false;
+
+      // Stop audio capture and emit event with captured data
+      if (this.isCapturing) {
+        const capturedAudio = this.stopAudioCapture();
+
+        if (capturedAudio && this.audioContext) {
+          // The capturedAudio is now handled by the MediaRecorder onstop callback
+          // We can still emit an event if needed, but the data is already processed
+          // For now, we'll just log the completion.
+          console.log('Threshold exceeded, audio capture stopped.');
+        }
+      }
     }
   }
 
   private cleanup() {
     if (this.animationId) {
       cancelAnimationFrame(this.animationId);
+    }
+
+    if (this.mediaRecorder) {
+      this.mediaRecorder.ondataavailable = null;
+      this.mediaRecorder.onstop = null;
+      this.mediaRecorder.stop();
+      this.mediaRecorder = null;
     }
 
     if (this.source) {

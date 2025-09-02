@@ -1,1 +1,4 @@
 backend/venv-bark-app
+dogs_sounds
+ai_model/*.wav
+ai_model/final_bark_model
