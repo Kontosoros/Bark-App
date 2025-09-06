@@ -17,7 +17,7 @@
                 <td>{{ log.prediction }}</td>
                 <td>{{ log.confidence | percent:'1.1-1' }}</td>
                 <td>
-                    <span class="status" [class]="log.status">{{ log.status }}</span>
+                    <span class="status" [class]="log.prediction">{{ log.prediction }}</span>
                 </td>
             </tr>
             }

@@ -1,11 +1,10 @@
-from django.shortcuts import render
 from rest_framework import generics, status
-from rest_framework.decorators import api_view, permission_classes
+
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from django.contrib.auth.models import User
-from django.core.files.storage import default_storage
-from django.core.files.base import ContentFile
+
+
 from .serializers import UserSerializer, RegisterSerializer
 import os
 import tempfile
@@ -122,7 +121,7 @@ def preprocess_audio(audio_path, feature_extractor, target_sampling_rate=16000):
     return inputs
 
 
-def predict_audio(model, feature_extractor, audio_path):
+def use_model(model, feature_extractor, audio_path):
     """
     Predict whether an audio file contains a bark
     """
@@ -163,6 +162,8 @@ class AnalyzeAudioView(generics.GenericAPIView):
         """
         Analyze audio file for bark detection
         """
+        print("🔍 Request FILES:", request.FILES)
+        print("🔍 Request DATA:", request.data)
 
         try:
             # Check if file is provided
@@ -199,7 +200,7 @@ class AnalyzeAudioView(generics.GenericAPIView):
                 model, feature_extractor = load_model()
 
                 # Make prediction
-                result = predict_audio(model, feature_extractor, temp_path)
+                result = use_model(model, feature_extractor, temp_path)
 
                 # Prepare response
                 response_data = {

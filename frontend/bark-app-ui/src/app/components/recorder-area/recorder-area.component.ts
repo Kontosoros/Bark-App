@@ -9,11 +9,8 @@ import {
 } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
 import { AudioWaveformComponent } from '../audio-waveform/audio-waveform.component';
-import {
-  AudioProcessingService,
-  ProcessedAudioData,
-} from '../../services/audio-processing.service';
-
+import { AudioProcessingService } from '../../services/audio-processing.service';
+import { ApiService } from '../../services/api.service';
 interface AudioCaptureEvent {
   amplitude: number;
   frequency: number;
@@ -51,17 +48,11 @@ export class RecorderAreaComponent {
     wavBlob: Blob;
     duration: number;
   }[] = [];
-  processedAudioSamples: {
-    timestamp: Date;
-    amplitude: number;
-    frequency: number;
-    wavBlob: Blob;
-    backendResult: any;
-  }[] = [];
 
   constructor(
     private dialog: MatDialog,
-    private audioProcessingService: AudioProcessingService
+    private audioProcessingService: AudioProcessingService,
+    private apiService: ApiService
   ) {}
 
   async toggleRecording() {
@@ -84,7 +75,6 @@ export class RecorderAreaComponent {
       this.audioStream = stream;
       this.startRecording();
     } catch (error) {
-      console.error('Microphone permission denied:', error);
       this.showMicrophonePermissionDialog();
     }
   }
@@ -139,14 +129,6 @@ export class RecorderAreaComponent {
     timestamp: Date;
     wavBlob: Blob;
   }) {
-    console.log('🚨 Loud noise detected!', {
-      amplitude: event.amplitude,
-      frequency: event.frequency,
-      timestamp: event.timestamp,
-      wavSize: event.wavBlob.size,
-    });
-
-    // Store the WAV blob
     this.capturedAudioSamples.push({
       timestamp: event.timestamp,
       amplitude: event.amplitude,
@@ -172,33 +154,20 @@ export class RecorderAreaComponent {
    */
   async sendWAVToBackend(wavBlob: Blob, metadata: any) {
     try {
-      console.log('📤 Sending WAV file to backend:', {
-        size: wavBlob.size,
-        type: wavBlob.type,
-        metadata,
-      });
-
       // Create FormData to send the WAV file
       const formData = new FormData();
       formData.append('file', wavBlob, 'captured_audio.wav'); // 👈 match Flask
       formData.append('metadata', JSON.stringify(metadata));
-
-      const response = await fetch('http://127.0.0.1:8000/main/ai/analyze/', {
-        method: 'POST',
-        body: formData,
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('access')}`,
-        },
+      // Convert Blob to File
+      const audioFile = new File([wavBlob], 'captured_audio.wav', {
+        type: 'audio/wav',
       });
-      console.log('🔍 Response:', response);
-      if (!response.ok) {
-        throw new Error(
-          `Backend error: ${response.status} ${response.statusText}`
-        );
-      }
 
-      const result = await response.json();
-      console.log('✅ Backend processed WAV file:', result);
+      this.apiService.analyzeAudio(audioFile).subscribe((result) => {
+        console.log('🔍 Response:', result);
+        this.audioProcessingService.addAnalysisResult(result);
+        // Store processed result
+      });
 
       // // Store processed result
       // this.processedAudioSamples.push({
@@ -211,30 +180,6 @@ export class RecorderAreaComponent {
     } catch (error) {
       console.error('❌ Error sending WAV to backend:', error);
     }
-  }
-
-  // Method to get all captured audio samples (useful for batch processing)
-  getAllCapturedAudio() {
-    return this.capturedAudioSamples;
-  }
-
-  // Method to get all processed audio samples
-  getAllProcessedAudio() {
-    return this.processedAudioSamples;
-  }
-
-  // Method to clear captured audio samples
-  clearCapturedAudio() {
-    this.capturedAudioSamples = [];
-    this.processedAudioSamples = [];
-    console.log('🗑️ All captured and processed audio samples cleared');
-  }
-
-  // Method to calculate total audio duration
-  getTotalAudioDuration(): number {
-    return this.capturedAudioSamples.reduce((total, sample) => {
-      return total + sample.wavBlob.size / 16000; // Assuming 16000 sample rate for duration calculation
-    }, 0);
   }
 }
 

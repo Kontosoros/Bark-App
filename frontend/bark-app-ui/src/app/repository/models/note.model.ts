@@ -5,16 +5,10 @@ export interface UserModel {
   confirm_password: string;
 }
 
-export interface NoteModel {
-  id?: string;
-  title: string;
-  description: string;
-  created_at: string | null;
-  note_date?: string;
-  reminder_from: Date | null;
-  reminder_to: Date | null;
-  calendar?: string | null;
-  note_color?: string | null;
+export interface AIPrediction {
+  timestamp: string;
+  prediction: string;
+  confidence: number;
 }
 export interface CalendarModel {
   id?: string;
@@ -25,14 +19,7 @@ export interface CalendarModel {
 export interface User {
   userName: string;
 }
-export interface Calendar {
-  id?: string;
-  title: string;
-  description: string;
-  color: string;
 
-  showEye?: boolean;
-}
 export interface Note {
   date?: string;
   title: string;

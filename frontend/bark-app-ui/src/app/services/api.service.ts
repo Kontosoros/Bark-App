@@ -2,20 +2,12 @@ import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import {
-  dtoNote,
-  dtoUserRegistry,
-  mapCalendar,
-  mapNote,
+  mapAIPrediction,
   mapUser,
+  mapUserRegistry,
 } from '../repository/mappers/note.mapper';
-import {
-  Calendar,
-  Note,
-  NoteModel,
-  User,
-  UserModel,
-} from '../repository/models/note.model';
-import { map, Observable } from 'rxjs';
+import { User, UserModel } from '../repository/models/note.model';
+import { map, Observable, pipe } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -35,17 +27,10 @@ export class ApiService {
     };
   }
   register(user: UserModel): Observable<User> {
-    const dto = dtoUserRegistry(user);
+    const dto = mapUserRegistry(user);
     return this.http
       .post(`${this.apiUrl}/main/user/register/`, dto)
       .pipe(map((res) => mapUser(res)));
-  }
-
-  saveNote(note: Note): Observable<Note> {
-    const dto = dtoNote(note);
-    return this.http
-      .post(`${this.apiUrl}/main/notes/`, dto, this.getHeaders())
-      .pipe(map((res) => mapNote(res)));
   }
 
   deleteNote(id: string | undefined): Observable<any> {
@@ -55,52 +40,26 @@ export class ApiService {
     );
   }
 
-  getNotes(): Observable<Note[]> {
+  analyzeAudio(file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+
     return this.http
-      .get<NoteModel[]>(`${this.apiUrl}/main/notes/`, this.getHeaders())
-      .pipe(map((res) => res.map((note) => mapNote(note))));
+      .post(
+        `${this.apiUrl}/main/ai/analyze/`,
+        formData,
+        this.getHeadersForFileUpload()
+      )
+      .pipe(map((res) => mapAIPrediction(res)));
   }
 
-  createCalendar(calendar: Calendar) {
-    return this.http.post(
-      `${this.apiUrl}/main/calendars/`,
-      calendar,
-      this.getHeaders()
-    );
-  }
-
-  getCalendars(): Observable<Calendar[]> {
-    return this.http
-      .get<Calendar[]>(`${this.apiUrl}/main/all-calendars/`, this.getHeaders())
-      .pipe(map((res) => res.map((calendar) => mapCalendar(calendar))));
-  }
-
-  updateNote(note: Note) {
-    const dto = dtoNote(note);
-    return this.http.put(
-      `${this.apiUrl}/main/notes/update/${note.id}/`,
-      dto,
-      this.getHeaders()
-    );
-  }
-
-  deleteCalendar(id: number | undefined): Observable<any> {
-    return this.http.delete(
-      `${this.apiUrl}/main/calendars/delete/${id}/`,
-      this.getHeaders()
-    );
-  }
-  updateCalendar(calendar: Calendar) {
-    return this.http.put(
-      `${this.apiUrl}/main/calendars/update/${calendar.id}/`,
-      calendar,
-      this.getHeaders()
-    );
-  }
-  getUsers(): Observable<string[]> {
-    return this.http.get<string[]>(
-      `${this.apiUrl}/main/users/`,
-      this.getHeaders()
-    );
+  private getHeadersForFileUpload() {
+    const token = localStorage.getItem('access');
+    return {
+      headers: new HttpHeaders({
+        Authorization: `Bearer ${token}`,
+        // Don't set Content-Type for FormData, let browser set it
+      }),
+    };
   }
 }
