@@ -1,3 +1,26 @@
 <div class="logs-dashboard">
-    <h1>Logs Dashboard</h1>
+    <h1>AI Model Results</h1>
+
+    <table class="results-table">
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>AI Prediction</th>
+                <th>Confidence</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (log of logs; track log.timestamp) {
+            <tr>
+                <td>{{ log.timestamp | date:'MMM dd, yyyy - HH:mm:ss' }}</td>
+                <td>{{ log.prediction }}</td>
+                <td>{{ log.confidence | percent:'1.1-1' }}</td>
+                <td>
+                    <span class="status" [class]="log.status">{{ log.status }}</span>
+                </td>
+            </tr>
+            }
+        </tbody>
+    </table>
 </div>

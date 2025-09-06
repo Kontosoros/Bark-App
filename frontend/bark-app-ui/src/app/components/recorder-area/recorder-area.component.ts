@@ -183,11 +183,14 @@ export class RecorderAreaComponent {
       formData.append('file', wavBlob, 'captured_audio.wav'); // 👈 match Flask
       formData.append('metadata', JSON.stringify(metadata));
 
-      const response = await fetch('http://127.0.0.1:5000/read-file', {
+      const response = await fetch('http://127.0.0.1:8000/main/ai/analyze/', {
         method: 'POST',
         body: formData,
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('access')}`,
+        },
       });
-
+      console.log('🔍 Response:', response);
       if (!response.ok) {
         throw new Error(
           `Backend error: ${response.status} ${response.statusText}`
