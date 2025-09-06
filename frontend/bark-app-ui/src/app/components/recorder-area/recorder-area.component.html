@@ -10,22 +10,7 @@
         <p class="status-text">{{ isRecording ? 'Listening for barks...' : 'Click to start listening' }}</p>
     </div>
 
-    <!-- Loud Noise Detection Status -->
-    <div class="detection-status" *ngIf="isRecording">
-        <div class="status-card">
-            <h3>Detection Status</h3>
-            <div class="status-grid">
-                <div class="status-item">
-                    <span class="label">Loud Noises:</span>
-                    <span class="value">{{ loudNoiseCount }}</span>
-                </div>
-                <div class="status-item" *ngIf="lastLoudNoise">
-                    <span class="label">Last Detected:</span>
-                    <span class="value">{{ lastLoudNoise | date:'HH:mm:ss' }}</span>
-                </div>
-            </div>
-        </div>
-    </div>
+
 
 
 
