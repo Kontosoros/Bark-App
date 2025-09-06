@@ -11,7 +11,7 @@
             </tr>
         </thead>
         <tbody>
-            @for (log of logs; track log.timestamp) {
+            @for (log of logs; track log) {
             <tr>
                 <td>{{ log.timestamp | date:'MMM dd, yyyy - HH:mm:ss' }}</td>
                 <td>{{ log.prediction }}</td>
