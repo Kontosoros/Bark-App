@@ -168,15 +168,6 @@ export class RecorderAreaComponent {
         this.audioProcessingService.addAnalysisResult(result);
         // Store processed result
       });
-
-      // // Store processed result
-      // this.processedAudioSamples.push({
-      //   timestamp: metadata.timestamp,
-      //   amplitude: metadata.amplitude,
-      //   frequency: metadata.frequency,
-      //   wavBlob: wavBlob,
-      //   backendResult: result,
-      // });
     } catch (error) {
       console.error('❌ Error sending WAV to backend:', error);
     }

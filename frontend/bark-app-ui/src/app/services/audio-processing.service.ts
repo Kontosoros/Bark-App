@@ -28,8 +28,6 @@ export class AudioProcessingService {
   private analysisResultsSubject = new BehaviorSubject<AIPrediction[]>([]);
   public analysisResults$ = this.analysisResultsSubject.asObservable();
 
-  constructor() {}
-
   // Add new analysis result
   addAnalysisResult(result: AIPrediction): void {
     const currentResults = this.analysisResultsSubject.value;

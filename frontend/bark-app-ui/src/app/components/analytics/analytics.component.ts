@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
+import { AudioProcessingService } from '../../services/audio-processing.service';
 
 @Component({
   selector: 'app-analytics',
@@ -8,29 +9,7 @@ import { NgxChartsModule } from '@swimlane/ngx-charts';
   styleUrl: './analytics.component.scss',
 })
 export class AnalyticsComponent {
-  // Sample data for the line chart
-  multi = [
-    {
-      name: 'Sales',
-      series: [
-        { name: 'Jan', value: 12000 },
-        { name: 'Feb', value: 15000 },
-        { name: 'Mar', value: 18000 },
-        { name: 'Apr', value: 22000 },
-        { name: 'May', value: 20000 },
-      ],
-    },
-    {
-      name: 'Revenue',
-      series: [
-        { name: 'Jan', value: 10000 },
-        { name: 'Feb', value: 14000 },
-        { name: 'Mar', value: 17000 },
-        { name: 'Apr', value: 21000 },
-        { name: 'May', value: 19000 },
-      ],
-    },
-  ];
+  constructor(private audioProcessingService: AudioProcessingService) {}
   // Chart options
   view: [number, number] = [700, 400];
   showLegend = true;
@@ -38,9 +17,39 @@ export class AnalyticsComponent {
   showYAxis = true;
   showXAxisLabel = true;
   showYAxisLabel = true;
-  xAxisLabel = 'Month';
-  yAxisLabel = 'Amount ($)';
+  xAxisLabel = 'Timestamp';
+  yAxisLabel = 'Percentage of AI';
   colorScheme = {
     domain: ['#5AA454', '#E44D25'],
   };
+  chartData: any[] = [];
+  ngOnInit() {
+    this.audioProcessingService.analysisResults$.subscribe((results) => {
+      console.log('results', results);
+
+      this.updateChart(results);
+    });
+  }
+
+  updateChart(results: any[]) {
+    if (!Array.isArray(results)) return;
+  
+    this.chartData = [
+      {
+        name: 'Bark Confidence',
+        series: results
+          // make sure timestamp and confidence exist
+          .filter(r => r.timestamp && r.confidence !== undefined && r.confidence >= 0.85 && r.prediction === 'bark')
+          // convert timestamp to milliseconds
+          .map(r => ({
+            name: new Date(r.timestamp).getTime(), // numeric timestamp
+            value: Number(r.confidence), // confidence as numeric value
+          }))
+          // sort by timestamp to have a proper time series
+          .sort((a, b) => a.name - b.name)
+      }
+    ];
+  }
+  
+  
 }

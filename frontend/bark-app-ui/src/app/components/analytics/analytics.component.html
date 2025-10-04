@@ -1,5 +1,7 @@
 <div class="analytics-container">
-    <ngx-charts-line-chart [view]="view" [scheme]="'cool'" [results]="multi" [legend]="showLegend" [xAxis]="showXAxis" [yAxis]="showYAxis" [showXAxisLabel]="showXAxisLabel" [showYAxisLabel]="showYAxisLabel" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel"
+    @if(chartData.length > 0){
+    <ngx-charts-line-chart [view]="view" [scheme]="'cool'" [results]="chartData" [legend]="showLegend" [xAxis]="showXAxis" [yAxis]="showYAxis" [showXAxisLabel]="showXAxisLabel" [showYAxisLabel]="showYAxisLabel" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel"
         [autoScale]="true">
-    </ngx-charts-line-chart>
+    </ngx-charts-line-chart>}
+
 </div>
