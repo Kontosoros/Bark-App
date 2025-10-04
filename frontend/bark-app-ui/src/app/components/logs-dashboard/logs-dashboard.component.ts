@@ -17,6 +17,7 @@ export class LogsDashboardComponent {
   ngOnInit() {
     this.audioProcessingService.analysisResults$.subscribe((results) => {
       this.logs = results;
+      console.log(this.logs);
     });
   }
 }

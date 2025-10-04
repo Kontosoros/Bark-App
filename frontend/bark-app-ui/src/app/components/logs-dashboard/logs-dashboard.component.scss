@@ -1,10 +1,9 @@
 .logs-dashboard {
     display: flex;
+    border: 1px solid red;
     flex-direction: column;
-    padding: 1.25rem;
-    height: 100vh;
-    width: 90%;
-    background-color: #f8f9fa;
+    align-items: start;
+    justify-content: center;
     .results-table {
         width: 50vw;
         height: 40vh;

@@ -11,5 +11,6 @@ export const routes: Routes = [
     component: MainAppComponent,
     canActivate: [AuthguardService],
   },
+
   { path: 'register', component: RegisterComponent },
 ];

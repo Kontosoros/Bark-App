@@ -1,14 +1,23 @@
-.main-app-container {
-    display: flex;
-    flex-direction: column;
-    border: 1px solid red;
-    height: 100vh;
-    width: 100vw;
-    .main-app-content {
+    .main-app-container {
         display: flex;
-        flex-direction: row;
+        flex-direction: column;
         border: 1px solid red;
-        gap: 20px;
-        justify-content: end;
+        height: 100vh;
+        width: 100vw;
+        .main-app-content {
+            display: flex;
+            flex-direction: row;
+            border: 1px solid red;
+            gap: 20px;
+            justify-content: end;
+        }
+        .dashboard-content {
+            display: flex;
+            border: 1px solid red;
+            flex-direction: column;
+            padding: 1.25rem;
+            height: 100vh;
+            width: 90%;
+            background-color: #f8f9fa;
+        }
     }
-}

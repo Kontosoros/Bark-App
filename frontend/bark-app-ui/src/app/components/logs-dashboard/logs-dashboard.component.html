@@ -1,5 +1,5 @@
 <div class="logs-dashboard">
-    <h1>AI Model Results</h1>
+
 
     <table class="results-table">
         <thead>
@@ -11,7 +11,7 @@
             </tr>
         </thead>
         <tbody>
-            @for (log of logs; track log) {
+            @for (log of logs; track log) { @if (log.prediction === 'bark' && log.confidence > 0.85) {
             <tr>
                 <td>{{ log.timestamp | date:'MMM dd, yyyy - HH:mm:ss' }}</td>
                 <td>{{ log.prediction }}</td>
@@ -19,8 +19,7 @@
                 <td>
                     <span class="status" [class]="log.prediction">{{ log.prediction }}</span>
                 </td>
-            </tr>
-            }
+            </tr>} }
         </tbody>
     </table>
 </div>
