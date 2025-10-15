@@ -13,7 +13,7 @@
         <tbody>
             @for (log of logs; track log) { @if (log.prediction === 'bark' && log.confidence > 0.85) {
             <tr>
-                <td>{{ log.timestamp | date:'MMM dd, yyyy - HH:mm:ss' }}</td>
+                <td>{{ log.timestamp | date:'MMM dd, hh:mm:ss a' }}</td>
                 <td>{{ log.prediction }}</td>
                 <td>{{ log.confidence | percent:'1.1-1' }}</td>
                 <td>
