@@ -1,7 +1,50 @@
-<div class="analytics-container">
+<div class="analytics-dashboard">
 
-    <ngx-charts-line-chart [view]="view" [scheme]="colorScheme" [results]="chartData" [legend]="showLegend" [xAxis]="showXAxis" [yAxis]="showYAxis" [showXAxisLabel]="showXAxisLabel" [showYAxisLabel]="showYAxisLabel" [xAxisLabel]="xAxisLabel" [yAxisLabel]="yAxisLabel"
-        [xAxisTickFormatting]="xAxisTickFormatting" [yScaleMin]="yScaleMin" [yScaleMax]="yScaleMax" [xScaleMin]="xScaleMin" [xScaleMax]="xScaleMax" [autoScale]="false" [roundDomains]="true" [animations]="true" [tooltipDisabled]="false" colorScheme="cool">
-    </ngx-charts-line-chart>
+
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <h2>📊 Bark Analytics Dashboard</h2>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🐕</div>
+            <div class="stat-content">
+                <div class="stat-label">Total Barks</div>
+                <div class="stat-value">{{ totalBarks }}</div>
+            </div>
+        </div>
+
+
+
+        <div class="stat-card">
+            <div class="stat-icon">📈</div>
+            <div class="stat-content">
+                <div class="stat-label">Avg Confidence</div>
+                <div class="stat-value">{{ averageConfidence.toFixed(1) }}%</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">⏰</div>
+            <div class="stat-content">
+                <div class="stat-label">Peak Time</div>
+                <div class="stat-value">{{ peakTime }}</div>
+            </div>
+        </div>
+
+
+    </div>
+
+    <!-- Grouped Bar Chart - Barks vs No Barks per Hour -->
+    <div class="chart-container">
+        <div class="chart-wrapper">
+            <ngx-charts-bar-vertical-2d [view]="barChartView" [scheme]="barColorScheme" [results]="barChartData" [legend]="showLegend" [xAxis]="showXAxis" [yAxis]="showYAxis" [showXAxisLabel]="showXAxisLabel" [showYAxisLabel]="showYAxisLabel" [xAxisLabel]="xAxisLabel"
+                [yAxisLabel]="yAxisLabel" [animations]="animations" [showGridLines]="showGridLines" [groupPadding]="16">
+            </ngx-charts-bar-vertical-2d>
+        </div>
+    </div>
+
+
 
 </div>
