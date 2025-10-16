@@ -34,7 +34,7 @@ export class AnalyticsComponent implements OnInit {
   showYAxis = true;
   showXAxisLabel = true;
   showYAxisLabel = true;
-  xAxisLabel = 'Hour';
+  xAxisLabel = 'Time (Minute)';
   yAxisLabel = 'Count';
   showGridLines = true;
   showLegend = true;
@@ -49,7 +49,6 @@ export class AnalyticsComponent implements OnInit {
   }
 
   updateDashboard(results: any[]) {
-    console.log(results);
     if (!results || results.length === 0) {
       this.resetStats();
       return;
@@ -65,31 +64,35 @@ export class AnalyticsComponent implements OnInit {
       return;
     }
 
-    // Group data by hour
-    const hourlyData = new Map<string, { barks: number; noBarks: number }>();
+    // Group data by minute
+    const minuteData = new Map<string, { barks: number; noBarks: number }>();
 
     validResults.forEach((result) => {
       const date = new Date(result.timestamp);
-      const hour = date.getHours();
-      const hourKey = this.formatHour(hour);
+      const minuteKey = this.formatMinute(date);
 
-      if (!hourlyData.has(hourKey)) {
-        hourlyData.set(hourKey, { barks: 0, noBarks: 0 });
+      if (!minuteData.has(minuteKey)) {
+        minuteData.set(minuteKey, { barks: 0, noBarks: 0 });
       }
 
-      const data = hourlyData.get(hourKey)!;
+      const data = minuteData.get(minuteKey)!;
       const isBark = result.prediction.toLowerCase() == 'bark';
 
       if (isBark) {
         data.barks++;
+      } else {
+        data.noBarks++;
       }
     });
-    console.log(hourlyData);
+
     // Transform data for ngx-charts grouped bar chart
-    this.barChartData = Array.from(hourlyData.entries()).map(
-      ([hour, data]) => ({
-        name: hour,
-        series: [{ name: 'Barks', value: data.barks, color: '#4CAF50' }],
+    this.barChartData = Array.from(minuteData.entries()).map(
+      ([minute, data]) => ({
+        name: minute,
+        series: [
+          { name: 'Barks', value: data.barks },
+          { name: 'No Barks', value: data.noBarks },
+        ],
       })
     );
 
@@ -102,8 +105,12 @@ export class AnalyticsComponent implements OnInit {
     const barkResults = results.filter(
       (r) => r.prediction.toLowerCase() == 'bark'
     );
+    const noBarkResults = results.filter(
+      (r) => r.prediction.toLowerCase() != 'bark'
+    );
 
     this.totalBarks = barkResults.length;
+    this.totalNoBarks = noBarkResults.length;
 
     // Calculate average confidence for barks only
     if (barkResults.length > 0) {
@@ -121,23 +128,24 @@ export class AnalyticsComponent implements OnInit {
       (r) => Number(r.confidence) >= 0.7
     ).length;
 
-    // Find peak time (hour with most barks)
-    const hourCounts = new Map<number, number>();
+    // Find peak time (minute with most barks)
+    const minuteCounts = new Map<string, number>();
     barkResults.forEach((r) => {
-      const hour = new Date(r.timestamp).getHours();
-      hourCounts.set(hour, (hourCounts.get(hour) || 0) + 1);
+      const date = new Date(r.timestamp);
+      const minuteKey = this.formatMinute(date);
+      minuteCounts.set(minuteKey, (minuteCounts.get(minuteKey) || 0) + 1);
     });
 
     let maxCount = 0;
-    let peakHour = 0;
-    hourCounts.forEach((count, hour) => {
+    let peakMinute = '';
+    minuteCounts.forEach((count, minute) => {
       if (count > maxCount) {
         maxCount = count;
-        peakHour = hour;
+        peakMinute = minute;
       }
     });
 
-    this.peakTime = hourCounts.size > 0 ? this.formatHour(peakHour) : '--';
+    this.peakTime = minuteCounts.size > 0 ? peakMinute : '--';
 
     // Calculate barks per hour
     if (barkResults.length > 0) {
@@ -166,5 +174,14 @@ export class AnalyticsComponent implements OnInit {
     const period = hour >= 12 ? 'PM' : 'AM';
     const displayHour = hour % 12 || 12;
     return `${displayHour}:00 ${period}`;
+  }
+
+  formatMinute(date: Date): string {
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const displayHour = hours % 12 || 12;
+    const displayMinute = minutes.toString().padStart(2, '0');
+    return `${displayHour}:${displayMinute} ${period}`;
   }
 }
