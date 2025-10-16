@@ -5,9 +5,13 @@
     align-items: center;
     height: 100%;
     padding: 0 1.25rem;
-    background-color: #ffffff;
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
+    background: linear-gradient(135deg, rgba(20, 25, 35, 0.95) 0%, rgba(25, 30, 40, 0.98) 50%, rgba(20, 25, 35, 0.95) 100%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 40px rgba(102, 126, 234, 0.05);
+    border-bottom: 1px solid rgba(102, 126, 234, 0.1);
     position: relative;
+    z-index: 10;
 }
 
 .header-left {
@@ -16,8 +20,13 @@
     .app-title {
         margin: 0;
         font-size: 1.5rem;
-        font-weight: bold;
-        color: #333;
+        font-weight: 800;
+        background: linear-gradient(135deg, #fff 0%, rgba(102, 126, 234, 1) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: -0.5px;
+        text-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
     }
 }
 
@@ -31,17 +40,23 @@
 
 .nav-link {
     text-decoration: none;
-    color: #666;
-    font-weight: 500;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 600;
     padding: 0.5rem 1rem;
-    border-radius: 0.375rem;
-    transition: all 0.3s ease;
+    border-radius: 0.75rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid transparent;
     &:hover {
-        color: #333;
-        background-color: #f5f5f5;
+        color: rgba(255, 255, 255, 0.95);
+        background: rgba(102, 126, 234, 0.15);
+        border-color: rgba(102, 126, 234, 0.3);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
     }
     &.active {
-        color: #007bff;
-        background-color: #e3f2fd;
+        color: #fff;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
+        border-color: rgba(102, 126, 234, 0.5);
+        box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
     }
 }

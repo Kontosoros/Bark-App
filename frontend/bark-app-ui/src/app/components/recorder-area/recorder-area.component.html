@@ -1,18 +1,19 @@
 <div class="recorder-area">
-    <h1>AI Bark Detection</h1>
+    <h1>🎙️ AI Bark Detection</h1>
 
     <div class="microphone-container">
-        <button mat-icon-button class="microphone-button" (click)="toggleRecording()">
-            <mat-icon [class.recording]="isRecording" class="microphone-icon">
-                {{ isRecording ? 'stop' : 'hearing' }}
-            </mat-icon>
+        <button mat-icon-button class="microphone-button" [class.recording]="isRecording" (click)="toggleRecording()">
+            <div class="button-content">
+                <div class="recording-indicator" *ngIf="isRecording"></div>
+                <mat-icon [class.recording]="isRecording" class="microphone-icon">
+                    {{ isRecording ? 'stop_circle' : 'mic' }}
+                </mat-icon>
+            </div>
         </button>
-        <p class="status-text">{{ isRecording ? 'Listening for barks...' : 'Click to start listening' }}</p>
+        <p class="status-text">
+            <span class="status-indicator" [class.active]="isRecording"></span> {{ isRecording ? 'Recording Active' : 'Ready to Listen' }}
+        </p>
     </div>
-
-
-
-
 
     <app-audio-waveform></app-audio-waveform>
 </div>
